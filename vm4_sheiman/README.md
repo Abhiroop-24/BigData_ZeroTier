@@ -1,6 +1,6 @@
 # VM 4 — Sheiman (Consumer 1 · Spark Job 1 · Producer 2)
 
-- **ZeroTier IP:** `10.35.23.63`
+- **ZeroTier IP:** `10.35.23.55`
 - **Kafka Bootstrap Server (`BS`):** `10.35.23.108:9092`
 
 ---

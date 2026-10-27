@@ -22,7 +22,7 @@ ZeroTier Private Network (a581878f7d78cd79)
 | **VM 1** | **Aadish** | Client (Producer 1 · Consumer 2 · Spark Job 2) | `10.35.23.124` | — |
 | **VM 2** | **Abhiroop** | **Kafka Broker 1 + Sole KRaft Controller** | `10.35.23.108` | `9092` (Broker), `9093` (Controller) |
 | **VM 3** | **Adarsh** | **Kafka Broker 2** (Stopped in failure demo) | `10.35.23.132` | `9092` (Broker) |
-| **VM 4** | **Sheiman** | Client (Consumer 1 · Spark Job 1 · Producer 2) | `10.35.23.63` | — |
+| **VM 4** | **Sheiman** | Client (Consumer 1 · Spark Job 1 · Producer 2) | `10.35.23.55` | — |
 
 - **Bootstrap Server (`BS`):** `10.35.23.108:9092`
 - **KRaft Cluster ID:** `haM9CpNJS2SxnRNHB_stXg`
