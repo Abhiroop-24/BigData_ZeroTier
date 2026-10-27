@@ -12,7 +12,8 @@ chk() { local msg=$1; shift; if "$@" >/dev/null 2>&1; then ok "$msg"; else bad "
 absent() { for f in "$@"; do chk "old output $f cleared" test ! -e "$f"; done; }
 topics() { "$KAFKA_HOME/bin/kafka-topics.sh" --bootstrap-server "$BS" "$@" 2>/dev/null; }
 
-echo "== environment ($ROLE)"
+KAFKA_HOME=${KAFKA_HOME:-/opt/kafka}
+BS=${BS:-"10.35.23.108:9092"}
 chk "KAFKA_HOME=$KAFKA_HOME has bin/kafka-topics.sh" test -x "$KAFKA_HOME/bin/kafka-topics.sh"
 chk "BS is set ($BS)" test -n "$BS"
 B=${BS%%,*}
