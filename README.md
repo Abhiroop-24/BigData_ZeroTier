@@ -7,12 +7,12 @@ This repository contains all code, scripts, configuration, and step-by-step inst
 
 ## 👥 Team & VM Assignments
 
-| VM | Role | Owner | ZeroTier Node ID | ZeroTier IP |
-| :--- | :--- | :--- | :--- | :--- |
-| **VM 1** | Producer 1 · Consumer 2 · Spark Job 2 | **Aadish** | `3220b05fad` | `10.35.23.124` |
-| **VM 2** | Kafka Broker 1 **+ KRaft Controller** (never stopped) | **Abhiroop** | `159995b1b0` | `10.35.23.108` |
-| **VM 3** | Kafka Broker 2 (stopped in failure test) | **Adarsh** | `16525a0f62` | `10.35.23.132` |
-| **VM 4** | Consumer 1 · Spark Job 1 · Producer 2 | **Sheiman** | `b50563d3ae` | `10.35.23.63` |
+| VM | Role | Owner | ZeroTier Node ID | ZeroTier IP | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **VM 1** | Producer 1 · Consumer 2 · Spark Job 2 | **Aadish** | `3220b05fad` | `10.35.23.124` | 🟢 Online |
+| **VM 2** | Kafka Broker 1 **+ KRaft Controller** (never stopped) | **Abhiroop** | `159995b1b0` | `10.35.23.108` | 🟢 **Active & Ready** |
+| **VM 3** | Kafka Broker 2 (stopped in failure test) | **Adarsh** | `16525a0f62` | `10.35.23.132` | 🟢 **Registered in Kafka** |
+| **VM 4** | Consumer 1 · Spark Job 1 · Producer 2 | **Sheiman** | `b50563d3ae` | `10.35.23.63` | 🟢 Online |
 
 ### 🌐 Network Details
 - **ZeroTier Network ID:** `a581878f7d78cd79`
@@ -21,159 +21,138 @@ This repository contains all code, scripts, configuration, and step-by-step inst
 
 ---
 
-## ⚡ Quick Setup for Each Person
+## 📌 Terminal Setup (EVERYONE runs this in EVERY terminal)
 
-### 1. Common for EVERYONE: Clone this repo
+### 👤 Aadish (VM 1)
 ```bash
-cd ~
-git clone https://github.com/Abhiroop-24/BigData_ZeroTier.git a2
-cd ~/a2
-```
-
----
-
-### 2. VM 2 Setup (Abhiroop - Already Running)
-- Runs Kafka Broker 1 + KRaft Controller.
-- Listens on `10.35.23.108:9092` and Controller quorum on `10.35.23.108:9093`.
-
----
-
-### 3. VM 3 Setup (Adarsh - Kafka Broker 2)
-
-On **VM 3**, run:
-```bash
-cd ~/a2
-export KAFKA_HOME=/opt/kafka    # or path to your kafka directory
-bash kafka_node_setup.sh vm3 10.35.23.108 10.35.23.132 haM9CpNJS2SxnRNHB_stXg
-```
-Expected output:
-```text
-Kafka started as node 2 (broker)
-```
-
-#### In every new terminal on VM 3, export:
-```bash
-export KAFKA_HOME=/opt/kafka
-export BS="10.35.23.108:9092"
-```
-
----
-
-### 4. VM 1 Setup (Aadish - Producer 1, Consumer 2, Spark Job 2)
-
-#### Step 4.1: Setup Python virtualenv
-```bash
-cd ~/a2
-python3 -m venv venv
-source venv/bin/activate
-pip install "kafka-python>=3.0"
-```
-
-#### Step 4.2: Export Environment Variables (in every terminal)
-```bash
-export KAFKA_HOME=/opt/kafka
-export BS="10.35.23.108:9092"
 cd ~/a2 && source venv/bin/activate
+export KAFKA_HOME=/opt/kafka
+export BS="10.35.23.108:9092"
 ```
 
-#### Step 4.3: Ensure Dataset is Ready
-Make sure `order.jsonl` is present in `~/a2/orders.jsonl`:
-```bash
-cp ~/a2/order.jsonl ~/a2/orders.jsonl
-sha256sum ~/a2/orders.jsonl
-# Expected sha256: d0d430a0c89b84f374ac5f6d30f899827ba6eebb9346e877f5088c86a4e6c939
-```
-
----
-
-### 5. VM 4 Setup (Sheiman - Consumer 1, Spark Job 1, Producer 2)
-
-*(If Sheiman is unavailable, VM 4 commands can be executed on VM 1 or another machine).*
-
-#### Step 5.1: Setup Python virtualenv
+### 👤 Abhiroop (VM 2)
 ```bash
 cd ~/a2
-python3 -m venv venv
-source venv/bin/activate
-pip install "kafka-python>=3.0"
-```
-
-#### Step 5.2: Export Environment Variables (in every terminal)
-```bash
 export KAFKA_HOME=/opt/kafka
 export BS="10.35.23.108:9092"
+```
+
+### 👤 Adarsh (VM 3)
+```bash
+cd ~/a2
+export KAFKA_HOME=/opt/kafka
+export BS="10.35.23.108:9092"
+```
+
+### 👤 Sheiman (VM 4)
+```bash
 cd ~/a2 && source venv/bin/activate
-```
-
-#### Step 5.3: Run Self-Test
-```bash
-spark-submit test_pipeline.py
-# Must output: ALL CHECKS PASSED
-```
-
----
-
-## 🚀 Running the Full Pipeline (Phase 5)
-
-Once both brokers (VM 2 and VM 3) are active:
-
-### Step 0: Create Topics (Run once from VM 2)
-```bash
 export KAFKA_HOME=/opt/kafka
 export BS="10.35.23.108:9092"
-
-for t in orders order_metrics; do
-  $KAFKA_HOME/bin/kafka-topics.sh --bootstrap-server $BS --create --topic $t --partitions 2 --replication-factor 2
-done
-
-# Initialize consumer offsets
-$KAFKA_HOME/bin/kafka-console-consumer.sh --bootstrap-server $BS --topic orders --from-beginning --max-messages 0 --timeout-ms 5000 2>/dev/null || true
 ```
-
-### Execution Order:
-
-| Step | VM | Command | What happens |
-| :---: | :---: | :--- | :--- |
-| **1** | **VM 4** | `python3 consumer.py orders orders_landed.jsonl 60` | Starts consumer, waits for orders |
-| **2** | **VM 1** | `python3 producer.py orders.jsonl orders` | Publishes 62 records across 2 partitions |
-| **3** | **VM 4** | *(Wait for Step 1 consumer to finish)* | Lands 62 records into `orders_landed.jsonl` |
-| **4** | **VM 4** | `spark-submit spark_job1_enrich.py` | Enriches data → outputs `order_metrics.jsonl` (44 valid records) |
-| **5** | **VM 4** | `python3 producer.py order_metrics.jsonl order_metrics` | Publishes 44 records to topic `order_metrics` |
-| **6** | **VM 1** | `python3 consumer.py order_metrics order_metrics_landed.jsonl 15` | Lands 44 records into `order_metrics_landed.jsonl` |
-| **7** | **VM 1** | `spark-submit spark_job2_analytics.py` | Generates `restaurant_summary.csv` and `city_summary.csv` |
 
 ---
 
-## 🛠️ Broker-Failure Test (Phase 6 - Graded)
+## 🏁 STEP 0: Pre-Flight Check (Run in parallel to verify readiness)
 
-1. **Before failure (verify 2 brokers & ISR):**
+| Person | VM | Command to run | Expected Result |
+| :--- | :--- | :--- | :--- |
+| **Aadish** | VM 1 | `bash preflight.sh vm1` | `== READY` |
+| **Abhiroop** | VM 2 | `bash preflight.sh vm2` | `== READY` *(Already passed)* |
+| **Adarsh** | VM 3 | `bash preflight.sh vm3` | `== READY` |
+| **Sheiman** | VM 4 | `bash preflight.sh vm4` | `== READY` |
+
+---
+
+## 🚀 STEP 1: Live Pipeline Run (Follow the strict sequence)
+
+### 🔹 Stage 1: Order Ingestion & Cleaning
+1. **Sheiman (VM 4)** runs **FIRST**:
+   ```bash
+   python3 consumer.py orders orders_landed.jsonl 60
+   ```
+   *(Starts listening on Kafka topic `orders`. Tell Aadish when running).*
+
+2. **Aadish (VM 1)** runs immediately after Sheiman starts:
+   ```bash
+   python3 producer.py orders.jsonl orders
+   ```
+   *(Sends 62 raw records to Kafka topic `orders`).*
+
+3. **Sheiman (VM 4)**:
+   - Waits for consumer to finish (~10–15s).
+   - Run Spark Job 1 to clean & enrich:
+   ```bash
+   spark-submit spark_job1_enrich.py
+   ```
+   *(Cleans and de-duplicates: 62 read ➔ 44 valid records written to `order_metrics.jsonl`).*
+
+---
+
+### 🔹 Stage 2: Enriched Metrics & Final Analytics
+4. **Sheiman (VM 4)** publishes enriched metrics:
+   ```bash
+   python3 producer.py order_metrics.jsonl order_metrics
+   ```
+   *(Sends 44 enriched records to topic `order_metrics`).*
+
+5. **Aadish (VM 1)** consumes enriched metrics:
+   ```bash
+   python3 consumer.py order_metrics order_metrics_landed.jsonl 15
+   ```
+   *(Lands 44 records into `order_metrics_landed.jsonl`).*
+
+6. **Aadish (VM 1)** runs Spark Job 2:
+   ```bash
+   spark-submit spark_job2_analytics.py
+   ```
+   *(Computes `restaurant_summary.csv` and `city_summary.csv`).*
+
+7. **Verify outputs on accuracy checker:**
+   - Upload `order_metrics.jsonl` (from VM 4), `restaurant_summary.csv` (from VM 1), and `city_summary.csv` (from VM 1) to:  
+     👉 **https://assignment2eval2026.vercel.app** (Team size: 4 / 5, Team: 10).  
+   - Expected accuracy: **100% / 100% / 100%**.
+
+---
+
+## 💥 STEP 2: Broker Failure Test (Graded in front of TA)
+
+1. **Before failure (Aadish or Abhiroop shows TA):**
    ```bash
    $KAFKA_HOME/bin/kafka-topics.sh --bootstrap-server $BS --describe --topic orders
-   # Shows: Replicas: 1,2 / 2,1 and Isr: 1,2
    ```
+   *(Point out: `Replicas: 1,2` and `Isr: 1,2` on both partitions).*
 
-2. **Stop VM 3 (only VM 3, NEVER stop VM 2):**
-   On VM 3:
+2. **Adarsh (VM 3) stops Broker 2:**
    ```bash
    $KAFKA_HOME/bin/kafka-server-stop.sh
+   sleep 10 && jps
    ```
+   *(Abhiroop / VM 2 NEVER STOPS).*
 
-3. **Check ISR after failure:**
+3. **Check ISR after failure (Aadish or Abhiroop):**
    ```bash
    $KAFKA_HOME/bin/kafka-topics.sh --bootstrap-server $BS --describe --topic orders
-   # ISR shrinks to: Isr: 1
    ```
+   *(Point out to TA: `Isr: 1`. Leadership moved completely to Broker 1. Zero unavailable partitions).*
 
-4. **Run pipeline continuity:**
-   Re-run pipeline steps 1–7. Producer succeeds without loss. Output files remain 100% identical.
+4. **Replay the pipeline while VM 3 is down:**
+   - Sheiman runs: `python3 consumer.py orders orders_landed.jsonl 60`
+   - Aadish runs: `python3 producer.py orders.jsonl orders`
+   - Sheiman runs: `spark-submit spark_job1_enrich.py`
+   - Sheiman runs: `python3 producer.py order_metrics.jsonl order_metrics`
+   - Aadish runs: `python3 consumer.py order_metrics order_metrics_landed.jsonl 15`
+   - Aadish runs: `spark-submit spark_job2_analytics.py`
+   *(Data flow continues without error; Spark drops the replayed duplicates so outputs stay identical).*
 
-5. **Restart VM 3:**
-   On VM 3:
+5. **Adarsh (VM 3) restarts Broker 2:**
    ```bash
    $KAFKA_HOME/bin/kafka-server-start.sh -daemon $KAFKA_HOME/config/a2-kraft.properties
    ```
-   After 10 seconds:
+
+6. **Verify ISR restored (Aadish or Abhiroop):**
    ```bash
+   sleep 10
    $KAFKA_HOME/bin/kafka-topics.sh --bootstrap-server $BS --describe --topic orders
-   # Shows ISR restored: Isr: 1,2
    ```
+   *(Point out to TA: Broker 2 caught up and rejoined the ISR: `Isr: 1,2`).*
