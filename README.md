@@ -12,7 +12,7 @@ This repository contains all code, scripts, configuration, and step-by-step inst
 | **VM 1** | Producer 1 · Consumer 2 · Spark Job 2 | **Aadish** | `3220b05fad` | `10.35.23.124` |
 | **VM 2** | Kafka Broker 1 **+ KRaft Controller** (never stopped) | **Abhiroop** | `159995b1b0` | `10.35.23.108` |
 | **VM 3** | Kafka Broker 2 (stopped in failure test) | **Adarsh** | `16525a0f62` | `10.35.23.132` |
-| **VM 4** | Consumer 1 · Spark Job 1 · Producer 2 | **Sheiman** | *(pending)* | *(pending)* |
+| **VM 4** | Consumer 1 · Spark Job 1 · Producer 2 | **Sheiman** | `b50563d3ae` | `10.35.23.63` |
 
 ### 🌐 Network Details
 - **ZeroTier Network ID:** `a581878f7d78cd79`
