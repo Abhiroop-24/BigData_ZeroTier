@@ -1,0 +1,1165 @@
+<title>Team 10 A2 Pipeline Plan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&family=Fraunces:opsz,wght@9..144,600&display=swap">
+<style>
+/* Layout: sticky phase index on the left, readable runbook column on the right */
+:root{--bg:#f6f7f9;--panel:#ffffff;--fg:#1b2230;--muted:#5b6577;--line:#dde2ea;--accent:#1f6f8b;--code:#eef2f6;
+--display:"Fraunces",Georgia,serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11161d;--panel:#171e27;--fg:#e3e8ef;--muted:#98a3b3;--line:#2a3441;--accent:#6cc3e0;--code:#1f2833;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#11161d;--panel:#171e27;--fg:#e3e8ef;--muted:#98a3b3;--line:#2a3441;--accent:#6cc3e0;--code:#1f2833;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:15px/1.6 var(--body)}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:28px 64px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px}
+header{grid-column:1/-1;border-bottom:1px solid var(--line);padding-bottom:18px}
+header h1{font:600 clamp(1.7rem,4vw,2.4rem)/1.15 var(--display);margin:0 0 6px;text-wrap:balance}
+header p{margin:0;color:var(--muted)}
+nav{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);align-self:start;font-size:13px;max-height:calc(100vh - 32px);overflow:auto}
+nav .label{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+nav ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:2px}
+nav a{color:var(--fg);text-decoration:none;display:block;padding:4px 8px;border-left:2px solid var(--line)}
+nav a:hover,nav a:focus-visible{border-left-color:var(--accent);color:var(--accent)}
+main{min-width:0;max-width:78ch}
+h2{font:600 1.45rem/1.25 var(--display);margin:2.4em 0 .6em;padding-top:.6em;border-top:1px solid var(--line);text-wrap:balance}
+h3{font-size:1.05rem;margin:1.8em 0 .4em}
+a{color:var(--accent)}
+code{font:0.88em var(--mono);background:var(--code);padding:1px 5px;border-radius:4px}
+pre{background:var(--code);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.5}
+pre code{background:none;padding:0}
+.tw{overflow-x:auto;margin:1em 0;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;vertical-align:top;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{font:600 12px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+blockquote{margin:0 0 1em;padding:8px 14px;border-left:3px solid var(--accent);color:var(--muted);background:var(--panel)}
+hr{display:none}
+@media (max-width:820px){.wrap{grid-template-columns:minmax(0,1fr)}nav{position:static;max-height:none}}
+</style>
+<div class="wrap">
+<header><h1>A2 Food Ordering Pipeline · Team 10</h1>
+<p>Kafka KRaft + Spark batch across 4 ZeroTier VMs. Setup, rehearsal, demo-day runbook and viva prep.</p></header>
+<nav aria-label="Sections"><div class="label">Sections</div>
+<ul>
+<li><a href="#0-where-we-stand">0. Where we stand</a></li>
+<li><a href="#1-the-60-second-picture">1. The 60-second picture</a></li>
+<li><a href="#2-files-in-this-folder-and-where-each-one-goes">2. Files in this folder and where each one goes</a></li>
+<li><a href="#3-who-owns-what-and-when">3. Who owns what, and when</a></li>
+<li><a href="#4-phase-1-zerotier-network-all-4-vms">4. Phase 1 – ZeroTier network (all 4 VMs)</a></li>
+<li><a href="#5-phase-2-build-the-2-node-kafka-cluster-vm2-first-then-vm3">5. Phase 2 – Build the 2-node Kafka cluster (VM2 first, then VM3)</a></li>
+<li><a href="#6-phase-3-topics-from-any-vm-with-both-brokers-up">6. Phase 3 – Topics (from any VM, with both brokers up)</a></li>
+<li><a href="#7-phase-4-client-vms-vm1-and-vm4">7. Phase 4 – Client VMs (VM1 and VM4)</a></li>
+<li><a href="#8-phase-5-full-pipeline-run-rehearse-it-exactly-like-the-demo">8. Phase 5 – Full pipeline run (rehearse it exactly like the demo)</a></li>
+<li><a href="#9-phase-6-broker-failure-test-graded-rehearse-it-twice">9. Phase 6 – Broker-failure test (graded; rehearse it twice)</a></li>
+<li><a href="#10-phase-7-demo-day-reset-3060-min-before-the-slot">10. Phase 7 – Demo-day reset (30–60 min before the slot)</a></li>
+<li><a href="#11-demo-day-runbook-likely-order">11. Demo-day runbook (likely order)</a></li>
+<li><a href="#12-viva-prep-individual-marks-so-everyone-learns-all-of-this">12. Viva prep (individual marks, so everyone learns all of this)</a></li>
+<li><a href="#13-troubleshooting">13. Troubleshooting</a></li>
+<li><a href="#14-ta-checklist-how-we-meet-it">14. TA checklist → how we meet it</a></li>
+<li><a href="#15-assumptions-and-open-points">15. Assumptions and open points</a></li>
+</ul>
+</nav>
+<main><blockquote>
+<p>Kafka (KRaft, 2 brokers) + Spark batch · 4 VMs on ZeroTier · Course: Big Data UE24CS343AB2
+Spec: https://big-data-2026-supersite.super.site/distributed-food-ordering-system
+Accuracy checker: https://assignment2eval2026.vercel.app (team size "4 / 5", team <strong>10</strong>)</p>
+</blockquote>
+<hr />
+<h2 id="0-where-we-stand">0. Where we stand</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pipeline code (producer, consumer, Spark Job 1, Spark Job 2)</td>
+<td>✅ Written. Tested locally on team 10's real dataset</td>
+</tr>
+<tr>
+<td>Accuracy on the TA checker (<code>order_metrics.jsonl</code>, <code>city_summary.csv</code>, <code>restaurant_summary.csv</code>)</td>
+<td>✅ <strong>100 % / 100 % / 100 %</strong>, with 0 mismatched, 0 missing and 0 extra rows</td>
+</tr>
+<tr>
+<td>Replay safety: Kafka delivers every record twice, shuffled</td>
+<td>✅ Outputs are byte-identical, so a re-run during the failure test can't hurt accuracy</td>
+</tr>
+<tr>
+<td>Self-test (<code>test_pipeline.py</code>), hand-checked values incl. 15/30-min boundaries</td>
+<td>✅ Passes</td>
+</tr>
+<tr>
+<td>2-node KRaft config + setup script (<code>kafka_node_setup.sh</code>)</td>
+<td>✅ Written, syntax-checked</td>
+</tr>
+<tr>
+<td>Pre-demo checker for the TA's checklist (<code>preflight.sh</code>)</td>
+<td>✅ Written, ISR parsing tested</td>
+</tr>
+<tr>
+<td><strong>VM work: Phases 1–7 below</strong></td>
+<td>⏳ <strong>Team does this on the VMs</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>The code can't be tested end-to-end over real Kafka from a laptop, so <strong>Phase 5 (first full run) and Phase 6 (failure rehearsal) are where that gets proven</strong>. Do them at least once before demo day.</p>
+<hr />
+<h2 id="1-the-60-second-picture">1. The 60-second picture</h2>
+<pre><code>                    ZeroTier = one private virtual LAN across all 4 laptops
+
+ VM1  (Producer 1, Consumer 2, Spark Job 2)          VM4  (Consumer 1, Spark Job 1, Producer 2)
+ ┌──────────────────────────────┐                    ┌──────────────────────────────────┐
+ │ orders.jsonl (62 raw records)│                    │                                  │
+ │   │ producer.py              │                    │ consumer.py → orders_landed.jsonl│
+ │   ▼                          │   ┌────────────┐   │   │                              │
+ │ ── topic &quot;orders&quot; ───────────┼──►│  KAFKA     │──►┼───┘ spark_job1_enrich.py         │
+ │                              │   │  VM2: broker 1 + KRaft controller (never stop)   │
+ │                              │   │  VM3: broker 2 (stopped in failure test)         │
+ │ consumer.py ◄────────────────┼───│  2 topics × 2 partitions × RF 2                  │
+ │   ▼                          │   └────────────┘◄──┼── producer.py ◄─ order_metrics.jsonl (44)
+ │ order_metrics_landed.jsonl   │      topic &quot;order_metrics&quot;                            │
+ │   │ spark_job2_analytics.py  │                    └──────────────────────────────────┘
+ │   ▼                          │
+ │ restaurant_summary.csv       │
+ │ city_summary.csv             │
+ └──────────────────────────────┘
+</code></pre>
+<p><strong>Stage 1 (Order Enrichment):</strong> VM1 publishes raw orders to Kafka. VM4 lands them in a local file, then Spark Job 1 cleans, de-duplicates and enriches them. VM4 then publishes the result to topic <code>order_metrics</code>.
+<strong>Stage 2 (Operations Analytics):</strong> VM1 lands <code>order_metrics</code> in a local file. Spark Job 2 then computes the restaurant and city summaries.</p>
+<p><strong>Rules from the spec we must not break:</strong>
+- Spark never reads Kafka directly. Data is always landed in a local file first.
+- No HDFS.
+- <code>order_metrics.jsonl</code> reaches VM1 <strong>only through Kafka</strong>, never by copying.
+- Both topics have 2 partitions and replication factor 2, on the same cluster.
+- Only VM3 is stopped in the failure test. <strong>Never stop VM2.</strong></p>
+<hr />
+<h2 id="2-files-in-this-folder-and-where-each-one-goes">2. Files in this folder and where each one goes</h2>
+<p><strong>Copy the entire folder to all 4 VMs</strong> as <code>~/a2</code>. That's the simplest way to make sure every VM has every file it needs.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>File</th>
+<th>Runs on</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>producer.py</code></td>
+<td>VM1, VM4</td>
+<td>Sends every non-blank line of a file to a topic, <strong>byte-for-byte</strong>, with <code>acks=all</code>. Prints the per-partition counts.</td>
+</tr>
+<tr>
+<td><code>consumer.py</code></td>
+<td>VM4, VM1</td>
+<td>Reads the whole topic from offset 0 and <strong>overwrites</strong> the output file. Exits after N idle seconds (default 15).</td>
+</tr>
+<tr>
+<td><code>spark_job1_enrich.py</code></td>
+<td>VM4</td>
+<td>Spark Job 1: cleaning rules → exact de-dup → metrics → <code>order_metrics.jsonl</code></td>
+</tr>
+<tr>
+<td><code>spark_job2_analytics.py</code></td>
+<td>VM1</td>
+<td>Spark Job 2: exact de-dup → restaurant + city summaries (CSV). Imports 2 helpers from Job 1's file, so both files must be in the folder.</td>
+</tr>
+<tr>
+<td><code>test_pipeline.py</code></td>
+<td>VM1, VM4</td>
+<td><code>spark-submit test_pipeline.py</code> → <code>ALL CHECKS PASSED</code> (hand-computed fixture)</td>
+</tr>
+<tr>
+<td><code>kafka_node_setup.sh</code></td>
+<td>VM2, VM3</td>
+<td>One-time: writes the KRaft config, wipes and formats storage, opens the firewall, starts Kafka</td>
+</tr>
+<tr>
+<td><code>preflight.sh</code></td>
+<td>all</td>
+<td>Checks the TA's checklist: env vars, broker reachable, topics, ISR, outputs cleared, input file unmodified</td>
+</tr>
+<tr>
+<td><code>order.jsonl</code></td>
+<td>VM1</td>
+<td>Team 10's dataset as downloaded (62 records, sha256 <code>d0d430a0…c939</code>). On VM1 name it <code>orders.jsonl</code> (the TA's wording).</td>
+</tr>
+<tr>
+<td><code>A2_PLAN.md</code></td>
+<td>—</td>
+<td>This document</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Getting the folder onto the VMs:</strong> use any method: a private GitHub repo with <code>git clone</code>, Google Drive/USB, or <code>scp -r A2_Food_Ordering_Pipeline &lt;user&gt;@&lt;VM_ZT_IP&gt;:~/a2</code>. If a file passes through Windows Notepad and a <code>.sh</code> script then fails with <code>$'\r': command not found</code>, run <code>sed -i 's/\r$//' ~/a2/*.sh</code>.</p>
+<hr />
+<h2 id="3-who-owns-what-and-when">3. Who owns what, and when</h2>
+<p>Fill in the names. <strong>Everyone must understand every part.</strong> The viva is individual and the TA can ask anyone anything.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>VM</th>
+<th>Role</th>
+<th>Owner</th>
+<th>ZeroTier IP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VM1</td>
+<td>Producer 1 · Consumer 2 · Spark Job 2</td>
+<td><strong><em>_</em></strong>_</td>
+<td><strong><em>_</em></strong>___</td>
+</tr>
+<tr>
+<td>VM2</td>
+<td>Kafka broker 1 <strong>+ KRaft controller</strong> (never stopped)</td>
+<td><strong><em>_</em></strong>_</td>
+<td><strong><em>_</em></strong>___</td>
+</tr>
+<tr>
+<td>VM3</td>
+<td>Kafka broker 2 (stopped in failure test)</td>
+<td><strong><em>_</em></strong>_</td>
+<td><strong><em>_</em></strong>___</td>
+</tr>
+<tr>
+<td>VM4</td>
+<td>Consumer 1 · Spark Job 1 · Producer 2</td>
+<td><strong><em>_</em></strong>_</td>
+<td><strong><em>_</em></strong>___</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Timeline.</strong> Evaluation starts next week, so finish the rehearsal before then.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>When</th>
+<th>What</th>
+<th>Who</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Session 1 (ASAP)</td>
+<td>Phases 1–3: network, Kafka cluster, topics</td>
+<td>all 4 online together (VM2 + VM3 owners drive)</td>
+<td>~1.5 h</td>
+</tr>
+<tr>
+<td>Session 2</td>
+<td>Phases 4–5: client VMs, first full pipeline run, checker = 100 %</td>
+<td>VM1 + VM4 drive</td>
+<td>~1 h</td>
+</tr>
+<tr>
+<td>Session 3</td>
+<td>Phase 6: broker-failure rehearsal, <strong>twice</strong></td>
+<td>VM2 + VM3 drive, everyone watches</td>
+<td>~45 min</td>
+</tr>
+<tr>
+<td>Before demo day</td>
+<td>Viva prep (§12). Each person explains one phase to the others.</td>
+<td>all</td>
+<td>ongoing</td>
+</tr>
+<tr>
+<td>Demo day, 30–60 min before the slot</td>
+<td>Phase 7: reset topics, clear outputs, <code>preflight.sh</code> = READY on all 4 VMs</td>
+<td>all</td>
+<td>20 min</td>
+</tr>
+</tbody>
+</table></div>
+<p>Why this order: Kafka has to work before anything else, and the failure test only means something once the normal pipeline works. The reset goes last because the TA only accepts outputs from the <strong>live</strong> run.</p>
+<hr />
+<h2 id="4-phase-1-zerotier-network-all-4-vms">4. Phase 1 – ZeroTier network (all 4 VMs)</h2>
+<p><strong>1.1 Find each VM's ZeroTier IP</strong></p>
+<pre><code class="language-bash">ip -4 -o addr show | grep zt
+</code></pre>
+<p>Each VM should show a <code>zt…</code> interface with an IP such as <code>10.147.x.y/24</code>. Write it in the table above. It must match the IP shown on my.zerotier.com next to that member.</p>
+<p><strong>1.2 Check that every VM can reach every other VM</strong></p>
+<pre><code class="language-bash">ping -c 3 &lt;OTHER_VM_ZT_IP&gt;
+</code></pre>
+<p><strong>1.3 On VM1 and VM4, stop any leftover single-node Kafka from the course demos</strong></p>
+<pre><code class="language-bash">$KAFKA_HOME/bin/kafka-server-stop.sh; sleep 3; jps     # must NOT list &quot;Kafka&quot;
+</code></pre>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>If…</th>
+<th>then…</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>you use the VM's NAT/LAN IP (e.g. <code>10.0.2.15</code>) instead of the ZeroTier IP</td>
+<td>VMs on different laptops can't reach each other. Only the ZeroTier IPs work across laptops.</td>
+</tr>
+<tr>
+<td>a member shows "Not authorized" or has no IP</td>
+<td>the network admin must tick <strong>Auth</strong> for that member on my.zerotier.com</td>
+</tr>
+<tr>
+<td>ping fails but the IPs are right</td>
+<td><code>sudo systemctl restart zerotier-one</code>, then check <code>sudo zerotier-cli listnetworks</code> shows <code>OK</code></td>
+</tr>
+<tr>
+<td>a stray single-node Kafka keeps running on VM1/VM4</td>
+<td>a typo like <code>BS=localhost:9092</code> would silently talk to that wrong broker. Stopping it removes the trap.</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="5-phase-2-build-the-2-node-kafka-cluster-vm2-first-then-vm3">5. Phase 2 – Build the 2-node Kafka cluster (VM2 first, then VM3)</h2>
+<p><strong>2.1 VM2: stop the old Kafka and generate ONE cluster ID</strong></p>
+<pre><code class="language-bash">$KAFKA_HOME/bin/kafka-server-stop.sh; sleep 3
+$KAFKA_HOME/bin/kafka-storage.sh random-uuid      # e.g. q1Sh-9_ISia_zwGINzRvyQ, paste it in the team chat
+</code></pre>
+<p><strong>2.2 VM2: set up and start broker 1 + controller</strong></p>
+<pre><code class="language-bash">cd ~/a2
+bash kafka_node_setup.sh vm2 &lt;VM2_IP&gt; &lt;VM2_IP&gt; &lt;CLUSTER_ID&gt;
+</code></pre>
+<p>Expected last line: <code>Kafka started as node 1 (broker,controller)</code>.</p>
+<p><strong>2.3 VM3: same idea, as broker 2</strong> (same VM2_IP, its own IP, the <strong>same</strong> cluster ID)</p>
+<pre><code class="language-bash">$KAFKA_HOME/bin/kafka-server-stop.sh; sleep 3
+cd ~/a2
+bash kafka_node_setup.sh vm3 &lt;VM2_IP&gt; &lt;VM3_IP&gt; &lt;CLUSTER_ID&gt;
+</code></pre>
+<p>Expected: <code>Kafka started as node 2 (broker)</code>.</p>
+<p><strong>2.4 Verify the cluster from any VM</strong></p>
+<pre><code class="language-bash">export KAFKA_HOME=/opt/kafka
+export BS=&quot;&lt;VM2_IP&gt;:9092&quot;
+$KAFKA_HOME/bin/kafka-broker-api-versions.sh --bootstrap-server $BS | grep &quot;id:&quot;
+#   &lt;VM2_IP&gt;:9092 (id: 1 rack: null) -&gt; (     ← two lines = both brokers registered
+#   &lt;VM3_IP&gt;:9092 (id: 2 rack: null) -&gt; (
+$KAFKA_HOME/bin/kafka-metadata-quorum.sh --bootstrap-server $BS describe --status
+#   LeaderId: 1, CurrentVoters: only node 1, CurrentObservers: includes node 2
+</code></pre>
+<h3 id="what-the-script-does-and-why-each-config-line-exists">What the script does, and why each config line exists</h3>
+<p>The course's Kafka page only shows a <strong>single-node</strong> setup with <code>localhost</code>. A cluster across VMs needs the settings below. The script writes them to <code>$KAFKA_HOME/config/a2-kraft.properties</code> and leaves the original <code>server.properties</code> untouched.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>VM2</th>
+<th>VM3</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>process.roles</code></td>
+<td><code>broker,controller</code></td>
+<td><code>broker</code></td>
+<td>VM2 runs both roles in one JVM (combined mode). VM3 only stores data and serves clients.</td>
+</tr>
+<tr>
+<td><code>node.id</code></td>
+<td><code>1</code></td>
+<td><code>2</code></td>
+<td>Unique ID per node. It's the "1"/"2" you see in <code>Leader:</code>, <code>Replicas:</code> and <code>Isr:</code>.</td>
+</tr>
+<tr>
+<td><code>controller.quorum.voters</code></td>
+<td><code>1@VM2_IP:9093</code></td>
+<td>same</td>
+<td>Who the controller is. One voter, so VM2 is the only node that can manage metadata.</td>
+</tr>
+<tr>
+<td><code>listeners</code></td>
+<td><code>PLAINTEXT://:9092,CONTROLLER://:9093</code></td>
+<td><code>PLAINTEXT://:9092</code></td>
+<td>Ports to bind on all interfaces: 9092 for clients and replication, 9093 for controller traffic</td>
+</tr>
+<tr>
+<td><code>advertised.listeners</code></td>
+<td><code>PLAINTEXT://VM2_IP:9092,…</code></td>
+<td><code>PLAINTEXT://VM3_IP:9092</code></td>
+<td><strong>The address brokers tell clients to connect to.</strong> It must be the ZeroTier IP.</td>
+</tr>
+<tr>
+<td><code>controller.listener.names</code> / <code>inter.broker.listener.name</code> / <code>listener.security.protocol.map</code></td>
+<td></td>
+<td></td>
+<td>Name the listeners and say both are plaintext</td>
+</tr>
+<tr>
+<td><code>log.dirs</code></td>
+<td><code>/opt/kafka/data/kraft</code></td>
+<td>same</td>
+<td>Where partitions live. Not in <code>/tmp</code>, which is wiped on reboot.</td>
+</tr>
+<tr>
+<td><code>num.partitions=2</code>, <code>default.replication.factor=2</code></td>
+<td></td>
+<td></td>
+<td>Safe defaults if a topic is ever auto-created</td>
+</tr>
+<tr>
+<td><code>min.insync.replicas=1</code></td>
+<td></td>
+<td></td>
+<td>With <code>acks=all</code>, a write needs at least 1 in-sync copy. <strong>This keeps producing alive while VM3 is down</strong> (see §9).</td>
+</tr>
+<tr>
+<td><code>offsets.topic.replication.factor=2</code></td>
+<td></td>
+<td></td>
+<td><code>__consumer_offsets</code> gets 2 copies. Otherwise the TA's console consumer can hang when VM3 is down.</td>
+</tr>
+<tr>
+<td><code>transaction.state.log.*</code></td>
+<td></td>
+<td></td>
+<td>Same idea for the transactions topic</td>
+</tr>
+<tr>
+<td><code>auto.create.topics.enable=false</code></td>
+<td></td>
+<td></td>
+<td>A topic-name typo fails loudly instead of silently creating a wrong topic</td>
+</tr>
+</tbody>
+</table></div>
+<p>It also runs <code>sudo ufw allow in on &lt;zt-interface&gt; to any port 9092</code> (and 9093 on VM2). The course prerequisites enabled ufw with only SSH allowed, which would block Kafka between VMs.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>If you do it differently…</th>
+<th>what happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>advertised.listeners</code> left as <code>localhost</code></td>
+<td>Clients on other VMs connect to VM2, get told "the leader is at localhost:9092", connect to <strong>themselves</strong>, and time out. This is the #1 multi-VM Kafka bug.</td>
+</tr>
+<tr>
+<td>Each VM formats with a <strong>different</strong> cluster ID</td>
+<td>VM3 refuses to join (<code>InconsistentClusterIdException</code> / invalid cluster id in <code>server.log</code>)</td>
+</tr>
+<tr>
+<td>Both VMs use <code>node.id=1</code></td>
+<td>VM3's registration is rejected as a duplicate broker</td>
+</tr>
+<tr>
+<td>Old single-node data is kept in <code>log.dirs</code></td>
+<td>Start fails on a <code>meta.properties</code> mismatch (old node.id or cluster.id). The script wipes it for that reason.</td>
+</tr>
+<tr>
+<td>Firewall ports not opened</td>
+<td>Clients see connection timeouts, and <code>kafka-broker-api-versions</code> lists only one or zero brokers</td>
+</tr>
+<tr>
+<td>VM3 set up before VM2</td>
+<td>Harmless. VM3 keeps retrying until the controller on VM2 is up.</td>
+</tr>
+<tr>
+<td><code>kafka_node_setup.sh</code> re-run later</td>
+<td>It wipes that node's data again. Only use it for first-time setup. For restarts, use <code>kafka-server-start.sh -daemon $KAFKA_HOME/config/a2-kraft.properties</code>.</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>After any reboot of VM2/VM3</strong>, Kafka does not auto-start. Start it with:</p>
+<pre><code class="language-bash">$KAFKA_HOME/bin/kafka-server-start.sh -daemon $KAFKA_HOME/config/a2-kraft.properties
+</code></pre>
+<p>Start VM2 first.</p>
+<hr />
+<h2 id="6-phase-3-topics-from-any-vm-with-both-brokers-up">6. Phase 3 – Topics (from any VM, with both brokers up)</h2>
+<p><strong>3.1 Terminal environment (the TA's format, required on every VM)</strong></p>
+<pre><code class="language-bash">export KAFKA_HOME=/opt/kafka
+export BS=&quot;&lt;VM2_ZEROTIER_IP&gt;:9092&quot;
+</code></pre>
+<p>(The TA's message is missing the closing <code>"</code> after <code>:9092</code>. Include it.)</p>
+<p><strong>3.2 Create both topics</strong></p>
+<pre><code class="language-bash">for t in orders order_metrics; do
+  $KAFKA_HOME/bin/kafka-topics.sh --bootstrap-server $BS --create --topic $t --partitions 2 --replication-factor 2
+done
+</code></pre>
+<p><strong>3.3 Describe them</strong> (this is what the TA checks before the failure test)</p>
+<pre><code class="language-bash">$KAFKA_HOME/bin/kafka-topics.sh --bootstrap-server $BS --describe --topic orders
+$KAFKA_HOME/bin/kafka-topics.sh --bootstrap-server $BS --describe --topic order_metrics
+</code></pre>
+<p>Expected for each topic:</p>
+<pre><code>Topic: orders  TopicId: …  PartitionCount: 2  ReplicationFactor: 2  Configs: …
+    Topic: orders  Partition: 0  Leader: 1  Replicas: 1,2  Isr: 1,2
+    Topic: orders  Partition: 1  Leader: 2  Replicas: 2,1  Isr: 2,1
+</code></pre>
+<p>(Leader numbers may be swapped, and <code>Elr</code>/<code>LastKnownElr</code> columns may appear. Both are fine.)</p>
+<p><strong>3.4 Create <code>__consumer_offsets</code> now, while both brokers are up</strong></p>
+<pre><code class="language-bash">$KAFKA_HOME/bin/kafka-console-consumer.sh --bootstrap-server $BS --topic orders --from-beginning --timeout-ms 5000
+$KAFKA_HOME/bin/kafka-topics.sh --bootstrap-server $BS --describe --topic __consumer_offsets | head -1   # ReplicationFactor: 2
+</code></pre>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>If…</th>
+<th>then…</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RF = 1</td>
+<td>Each partition lives on one broker only. When VM3 stops, the partition it held goes <strong>offline</strong>, the failure test fails, and data could be lost.</td>
+</tr>
+<tr>
+<td>1 partition</td>
+<td>Works, but violates the spec and loses parallelism. The TA checks <code>PartitionCount: 2</code>.</td>
+</tr>
+<tr>
+<td>Topics created while VM3 is down</td>
+<td>Fails: replication factor 2 is larger than the 1 available broker</td>
+</tr>
+<tr>
+<td>Step 3.4 skipped and the TA runs <code>kafka-console-consumer.sh</code> during the outage</td>
+<td>If <code>__consumer_offsets</code> gets created then, with only 1 broker alive, RF 2 is impossible and the console consumer hangs on "coordinator not available". Our own <code>consumer.py</code> doesn't use a group, so it is unaffected.</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="7-phase-4-client-vms-vm1-and-vm4">7. Phase 4 – Client VMs (VM1 and VM4)</h2>
+<p><strong>4.1 Python Kafka client in a venv</strong> (the course's way: plain <code>python3</code>, which is 3.12)</p>
+<pre><code class="language-bash">cd ~/a2
+python3 -m venv venv &amp;&amp; source venv/bin/activate
+pip install &quot;kafka-python&gt;=3.0&quot;
+</code></pre>
+<p><strong>4.2 Spark check</strong></p>
+<pre><code class="language-bash">spark-submit --version        # version 3.3.4
+echo $PYSPARK_PYTHON          # /usr/bin/python3.10
+</code></pre>
+<p><strong>4.3 Self-test</strong> (~30 s)</p>
+<pre><code class="language-bash">spark-submit test_pipeline.py     # → ALL CHECKS PASSED
+</code></pre>
+<p><strong>4.4 VM1 only: the dataset</strong>
+Download it from https://kunjalpatwari.github.io/A2_Dataset_Download/ (enter <strong>10</strong>), or copy <code>order.jsonl</code> from this folder. Then:</p>
+<pre><code class="language-bash">mv order.jsonl ~/a2/orders.jsonl            # renaming doesn't change the content
+sha256sum ~/a2/orders.jsonl                 # must be d0d430a0c89b84f374ac5f6d30f899827ba6eebb9346e877f5088c86a4e6c939
+</code></pre>
+<p><strong>Never edit or delete this file</strong> (the TA's rule). <code>preflight.sh</code> verifies the hash.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>If…</th>
+<th>then…</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>You run a job with <code>python3 spark_job1_enrich.py</code> instead of <code>spark-submit</code></td>
+<td><code>ModuleNotFoundError: pyspark</code>. On the VMs, PySpark ships inside <code>/opt/spark</code>, and <code>spark-submit</code> wires it up.</td>
+</tr>
+<tr>
+<td>Spark runs on Python 3.12</td>
+<td>PySpark 3.3.4 breaks (cloudpickle). <code>spark-submit</code> uses <code>PYSPARK_PYTHON=python3.10</code>, so the venv doesn't interfere.</td>
+</tr>
+<tr>
+<td>An old <code>kafka-python</code> (2.0.x) is installed</td>
+<td>Its default <code>retries=0</code> means a send during the leader change can fail. 3.x retries for up to 120 s and is idempotent.</td>
+</tr>
+<tr>
+<td>The dataset is opened and saved in an editor</td>
+<td>Line endings or whitespace may change, the hash won't match, and that counts as "modified".</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="8-phase-5-full-pipeline-run-rehearse-it-exactly-like-the-demo">8. Phase 5 – Full pipeline run (rehearse it exactly like the demo)</h2>
+<p>Every terminal starts with:</p>
+<pre><code class="language-bash">export KAFKA_HOME=/opt/kafka
+export BS=&quot;&lt;VM2_IP&gt;:9092&quot;
+cd ~/a2 &amp;&amp; source venv/bin/activate        # (venv only on VM1/VM4)
+</code></pre>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>VM</th>
+<th>Command</th>
+<th>Expected output (team 10)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>VM4</td>
+<td><code>python3 consumer.py orders orders_landed.jsonl 60</code></td>
+<td>Waits. Start it <strong>first</strong>: it listens while VM1 produces.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>VM1</td>
+<td><code>python3 producer.py orders.jsonl orders</code></td>
+<td><code>sent 62 records to 'orders' \| per partition: {0: a, 1: b}</code>, with a + b = 62</td>
+</tr>
+<tr>
+<td>3</td>
+<td>VM4</td>
+<td>(step 1 finishes ~60 s after the last record)</td>
+<td><code>landed 62 records from 'orders' into orders_landed.jsonl …</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>VM4</td>
+<td><code>spark-submit spark_job1_enrich.py</code></td>
+<td><code>Job 1: 62 records read -&gt; 44 valid, de-duplicated orders written to order_metrics.jsonl</code>, then the table ON_TIME 11 · SLIGHT 11 · MODERATE 15 · SEVERE 7</td>
+</tr>
+<tr>
+<td>5</td>
+<td>VM4</td>
+<td><code>python3 producer.py order_metrics.jsonl order_metrics</code></td>
+<td><code>sent 44 records to 'order_metrics' …</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td>VM1</td>
+<td><code>python3 consumer.py order_metrics order_metrics_landed.jsonl</code></td>
+<td><code>landed 44 records …</code> (after 15 s idle)</td>
+</tr>
+<tr>
+<td>7</td>
+<td>VM1</td>
+<td><code>spark-submit spark_job2_analytics.py</code></td>
+<td>The two tables below, and <code>Job 2: wrote restaurant_summary.csv and city_summary.csv</code></td>
+</tr>
+<tr>
+<td>8</td>
+<td>any</td>
+<td>Get the 3 output files onto one machine and upload them to the checker (team 10)</td>
+<td>100 / 100 / 100</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Expected Job 2 output (team 10).</strong> Check the live run against this:</p>
+<pre><code>restaurant_id order_count avg_order_amount avg_preparation_time_min avg_delivery_time_min delayed_order_count delay_rate_pct
+R01           8           639.0            12.5                     20.0                  4                   50.0
+R02           8           629.75           12.75                    25.0                  8                   100.0
+R03           7           542.0            13.43                    30.0                  4                   57.14
+R04           7           639.0            13.29                    35.0                  7                   100.0
+R05           7           614.57           13.14                    40.0                  3                   42.86
+R06           7           590.14           13.0                     45.0                  7                   100.0
+
+city      order_count avg_order_amount avg_delivery_time_min delayed_order_count delay_rate_pct
+Bengaluru 16          634.38           22.5                  12                  75.0
+Hyderabad 7           590.14           45.0                  7                   100.0
+Mumbai    14          590.5            32.5                  11                  78.57
+Pune      7           614.57           40.0                  3                   42.86
+</code></pre>
+<p><strong>Why 62 → 44 (know this for the viva).</strong> 18 records are dropped:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Reason</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Exact duplicates (a second identical copy)</td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>status</code> not DELIVERED (3 CANCELLED, 1 PENDING, 1 REFUNDED, 1 FAILED)</td>
+<td>6</td>
+</tr>
+<tr>
+<td>Missing almost all fields (<code>{"order_id":"BROKEN",…}</code> and 2 × <code>invalid_order_record</code>)</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Missing <code>city</code></td>
+<td>1</td>
+</tr>
+<tr>
+<td>Invalid timestamp (<code>"bad"</code>, <code>"not-a-timestamp"</code>)</td>
+<td>2</td>
+</tr>
+<tr>
+<td><code>order_amount</code> = 0</td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>distance_km</code> ≤ 0</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<p>Some order IDs (e.g. <code>T020002</code>, <code>T020005</code>) appear twice: once broken and once valid. Only the valid copy survives. That is correct: they are <strong>not</strong> exact duplicates, and the cleaning rules remove the broken one.</p>
+<h3 id="design-choices-in-the-code-and-what-the-alternatives-would-do">Design choices in the code, and what the alternatives would do</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Choice</th>
+<th>Why</th>
+<th>If done the other way</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Producer sends <strong>raw lines</strong>, no parsing</td>
+<td>Cleaning is Spark Job 1's job, per the spec</td>
+<td>Parsing in the producer would drop malformed lines before Kafka, so Spark would never see them and you'd be "adding business rules" outside Spark</td>
+</tr>
+<tr>
+<td>Producer <code>acks="all"</code> + <code>flush()</code> + checks each send</td>
+<td>Every record is confirmed by all in-sync replicas. A failed send crashes loudly.</td>
+<td><code>acks=0</code>/<code>1</code> is faster but can lose acknowledged data if the leader dies. Without <code>flush()</code>, the script can exit before its batches are sent, which loses records.</td>
+</tr>
+<tr>
+<td>Consumer <code>group_id=None</code> + <code>auto_offset_reset="earliest"</code></td>
+<td>Each run replays the <strong>whole topic</strong> and overwrites the landed file, so a repeat run is always complete</td>
+<td>With a consumer group, offsets get committed, so the <strong>second run reads nothing</strong>: an empty landed file and 0 output rows. With <code>"latest"</code>, a consumer started after the producer reads nothing.</td>
+</tr>
+<tr>
+<td>Consumer stops after N idle seconds</td>
+<td>Batch semantics: land what's there, then stop</td>
+<td>With no timeout the consumer runs forever and the next step never starts. Too short a timeout (e.g. 2 s during a failover) exits early with partial data, so use 60 during the failure test.</td>
+</tr>
+<tr>
+<td>Explicit Spark schema</td>
+<td>Malformed JSON and wrong types become <code>null</code> and are filtered out. The types are fixed.</td>
+<td>With schema inference, malformed lines go into a <code>_corrupt_record</code> column and types are guessed</td>
+</tr>
+<tr>
+<td>Exact de-dup = <code>dropDuplicates(all 14 fields)</code></td>
+<td>The spec says "exact duplicate orders counted once"</td>
+<td>De-duping on <code>order_id</code> only is a <strong>different rule</strong>: it can keep a broken copy and drop the valid one, which gives wrong counts</td>
+</tr>
+<tr>
+<td>De-dup again in Job 2</td>
+<td>Kafka is at-least-once, so a replayed topic must not double-count</td>
+<td>Without it, re-running Stage 1 during the failure test would double every count in the summaries</td>
+</tr>
+<tr>
+<td><code>file://</code> absolute paths</td>
+<td>The Spark install configured Hadoop, so a bare path may resolve to <strong>HDFS</strong></td>
+<td><code>Path does not exist: hdfs://…</code>, and HDFS is forbidden anyway</td>
+</tr>
+<tr>
+<td>Session timezone = UTC</td>
+<td>Minute differences never jump at a DST change</td>
+<td>Usually the same result, but wrong by 60 min across a DST change</td>
+</tr>
+<tr>
+<td>Built-in Spark functions, no Python UDFs</td>
+<td>Runs in the JVM and is optimised by Catalyst</td>
+<td>UDFs serialise every row to Python workers: slower, and more ways to break</td>
+</tr>
+<tr>
+<td>Results written with <code>collect()</code> to <strong>one</strong> file</td>
+<td>The checker needs exactly <code>order_metrics.jsonl</code> / <code>*.csv</code> files</td>
+<td><code>df.write.json("order_metrics.jsonl")</code> makes a <strong>folder</strong> of <code>part-*.json</code> files, which the checker can't take. (<code>collect()</code> only suits small data; for millions of rows use <code>coalesce(1).write</code> and rename.)</td>
+</tr>
+<tr>
+<td><code>delay_category</code> uses <code>≤15</code> / <code>≤30</code></td>
+<td>Matches the spec's 1–15 / 16–30 / &gt;30. All team 10 times are whole minutes.</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Field name <code>order_amount</code></td>
+<td>The spec's table shows <code>order amount</code> (a typo). The checker accepted <code>order_amount</code> at 100 %.</td>
+<td>—</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="9-phase-6-broker-failure-test-graded-rehearse-it-twice">9. Phase 6 – Broker-failure test (graded; rehearse it twice)</h2>
+<p>The TA will check 4 things. Here's how to show each one.</p>
+<p><strong>6.1 Before the failure: topic configuration and ISR</strong></p>
+<pre><code class="language-bash">$KAFKA_HOME/bin/kafka-topics.sh --bootstrap-server $BS --describe --topic orders
+$KAFKA_HOME/bin/kafka-topics.sh --bootstrap-server $BS --describe --topic order_metrics
+$KAFKA_HOME/bin/kafka-broker-api-versions.sh --bootstrap-server $BS | grep &quot;id:&quot;     # 2 brokers
+</code></pre>
+<p>Point out: <strong>PartitionCount 2, ReplicationFactor 2, Replicas 1,2 / 2,1, Isr has both brokers</strong>, and each broker leads one partition.</p>
+<p><strong>6.2 Stop VM3 (only VM3, never VM2)</strong></p>
+<pre><code class="language-bash"># on VM3
+$KAFKA_HOME/bin/kafka-server-stop.sh
+sleep 10; jps            # no &quot;Kafka&quot; line
+</code></pre>
+<p>Graceful stop: VM3 first hands over leadership, then shuts down. If the TA wants a <strong>crash</strong>, use <code>kill -9 $(jps | awk '/Kafka/{print $1}')</code> instead. The controller then notices after about 9 s (<code>broker.session.timeout.ms</code>), so wait 10–15 s before describing.</p>
+<p><strong>6.3 After the failure: ISR and leadership</strong></p>
+<pre><code class="language-bash">$KAFKA_HOME/bin/kafka-topics.sh --bootstrap-server $BS --describe --topic orders
+#   Partition: 0  Leader: 1  Replicas: 1,2  Isr: 1
+#   Partition: 1  Leader: 1  Replicas: 2,1  Isr: 1      ← leadership moved from 2 to 1
+$KAFKA_HOME/bin/kafka-topics.sh --bootstrap-server $BS --describe --under-replicated-partitions   # all 4 partitions listed
+$KAFKA_HOME/bin/kafka-topics.sh --bootstrap-server $BS --describe --unavailable-partitions        # EMPTY = nothing offline
+</code></pre>
+<p>Say this: "Replicas still lists 2 because that's the <em>assignment</em>. ISR shrank to [1] because broker 2 is not in sync. Every partition still has a leader, so nothing is unavailable and no data was lost: broker 1 already had a full copy because RF = 2."</p>
+<p><strong>6.4 Pipeline continuity while VM3 is down.</strong> Re-run Phase 5 steps 1–7, using <code>60</code> as the idle time on both consumers.
+- <code>orders</code> now holds the earlier 62 records plus 62 new ones, so VM4 lands <strong>124</strong>. Job 1 prints <code>124 records read -&gt; 44 valid…</code>, because exact duplicates are removed. All outputs are <strong>identical</strong> to the first run, which we verified locally with a doubled, shuffled topic.
+- If the TA asks "why 124?": "Kafka keeps data after it's read (it's a log, not a queue). Our consumer replays the full topic, and Spark's exact-duplicate removal makes the replay harmless."
+- The producer's per-partition counts still show both partitions. Both are now led by broker 1.</p>
+<p><strong>6.5 Restart VM3 and show it rejoining the ISR</strong></p>
+<pre><code class="language-bash"># on VM3 (NOT kafka_node_setup.sh, which would wipe the data)
+$KAFKA_HOME/bin/kafka-server-start.sh -daemon $KAFKA_HOME/config/a2-kraft.properties
+# from any VM, after 10–20 s
+$KAFKA_HOME/bin/kafka-topics.sh --bootstrap-server $BS --describe --topic orders      # Isr: 1,2 again
+$KAFKA_HOME/bin/kafka-topics.sh --bootstrap-server $BS --describe --under-replicated-partitions   # empty
+</code></pre>
+<p>VM3 copied the records it missed from the leader, then rejoined the ISR. Leadership may stay on broker 1. Kafka restores the "preferred" leader on its own within about 5 min (<code>auto.leader.rebalance.enable</code>). To show it immediately:</p>
+<pre><code class="language-bash">$KAFKA_HOME/bin/kafka-leader-election.sh --bootstrap-server $BS --election-type preferred --all-topic-partitions
+</code></pre>
+<p><strong>6.6 Run the pipeline once more</strong> (Phase 5) to show it keeps working with both brokers back.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>If you do it differently…</th>
+<th>what happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Stop VM2</strong></td>
+<td>It's the <strong>only controller</strong> (the only voter in the quorum). With no controller there are no leader elections and no metadata changes, broker 2 can't stay registered, and broker 1's partitions go offline too. The cluster stops working, which is why the TA forbids it. Fixing that needs 3 controllers (a quorum of 3), which is out of scope.</td>
+</tr>
+<tr>
+<td><code>min.insync.replicas=2</code></td>
+<td>While VM3 is down the ISR is 1 &lt; 2, so every <code>acks=all</code> write fails with <code>NotEnoughReplicas</code> and <strong>continuity fails</strong>. We use 1. The trade-off is that for that window the data has a single copy.</td>
+</tr>
+<tr>
+<td><code>acks=1</code></td>
+<td>Continuity still works, but if the leader died right after acking, before the follower copied the record, that record would be lost</td>
+</tr>
+<tr>
+<td>RF = 1</td>
+<td>The partition that lived only on VM3 goes offline, <code>--unavailable-partitions</code> lists it, and producers/consumers fail for it</td>
+</tr>
+<tr>
+<td><code>BS</code> points only at VM3</td>
+<td>Clients can't even bootstrap once VM3 stops. Our <code>BS</code> is VM2, which never stops. (You may also list both: <code>BS=VM2:9092,VM3:9092</code>.)</td>
+</tr>
+<tr>
+<td>Restart VM3 with <code>kafka_node_setup.sh</code></td>
+<td>Its data is wiped and fully re-copied from VM2. It still works, but it's slower and needless.</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="10-phase-7-demo-day-reset-3060-min-before-the-slot">10. Phase 7 – Demo-day reset (30–60 min before the slot)</h2>
+<p><strong>7.1</strong> Both brokers up (<code>jps</code> on VM2/VM3). If needed, start VM2 first, then VM3.</p>
+<p><strong>7.2 Recreate both topics</strong> so the live run starts clean (62 → 62 → 44 → 44, no replay counts):</p>
+<pre><code class="language-bash">for t in orders order_metrics; do $KAFKA_HOME/bin/kafka-topics.sh --bootstrap-server $BS --delete --topic $t; done
+sleep 10
+for t in orders order_metrics; do
+  $KAFKA_HOME/bin/kafka-topics.sh --bootstrap-server $BS --create --topic $t --partitions 2 --replication-factor 2
+done
+</code></pre>
+<p>(If <code>create</code> says "marked for deletion", wait 10 s and run it again.) The topic <strong><code>orders</code></strong> is not the file <strong><code>orders.jsonl</code></strong>. Never touch the file.</p>
+<p><strong>7.3 Clear old outputs</strong> (the TA's rule). Delete exactly these files and <strong>never run <code>rm *.jsonl</code> on VM1</strong>.</p>
+<pre><code class="language-bash"># VM4
+rm -f ~/a2/orders_landed.jsonl ~/a2/order_metrics.jsonl
+# VM1
+rm -f ~/a2/order_metrics_landed.jsonl ~/a2/restaurant_summary.csv ~/a2/city_summary.csv
+</code></pre>
+<p><strong>7.4 Every VM: open the demo terminal and run preflight</strong></p>
+<pre><code class="language-bash">export KAFKA_HOME=/opt/kafka
+export BS=&quot;&lt;VM2_IP&gt;:9092&quot;
+cd ~/a2 &amp;&amp; source venv/bin/activate      # VM1/VM4
+bash preflight.sh vm1                    # vm2 / vm3 / vm4 on the others → must end with &quot;== READY&quot;
+</code></pre>
+<p><strong>7.5</strong> Laptops on charger, sleep disabled, ZeroTier online, and <strong>leave that terminal open</strong>. The exported variables only live in that terminal.</p>
+<hr />
+<h2 id="11-demo-day-runbook-likely-order">11. Demo-day runbook (likely order)</h2>
+<ol>
+<li><strong>Intro (30 s):</strong> the architecture (§1), who owns which VM, and that ZeroTier connects them.</li>
+<li><strong>Show the setup:</strong> run <code>cat $KAFKA_HOME/config/a2-kraft.properties</code> on VM2 and VM3. Then the topic describe plus <code>kafka-broker-api-versions</code> (6.1).</li>
+<li><strong>Live pipeline:</strong> Phase 5 steps 1–7, narrating each step. The TA uploads or records the outputs.</li>
+<li><strong>Failure test:</strong> 6.2 → 6.3 → 6.4 → 6.5 → 6.6.</li>
+<li><strong>Viva:</strong> individual questions (§12).</li>
+</ol>
+<p>Say out loud what each step proves. For example: "VM4 got all 62 records split across both partitions, so Kafka moved the data between VMs."</p>
+<hr />
+<h2 id="12-viva-prep-individual-marks-so-everyone-learns-all-of-this">12. Viva prep (individual marks, so everyone learns all of this)</h2>
+<h3 id="121-the-pipeline-in-60-seconds-everyone-memorise">12.1 The pipeline in 60 seconds (everyone memorise)</h3>
+<p>"A food platform's orders go through a two-stage batch pipeline across four VMs on a ZeroTier network. VM1 publishes the raw orders to the Kafka topic <code>orders</code>. Kafka runs in KRaft mode on VM2, which is broker plus controller, and VM3, which is a broker. Both topics have 2 partitions and replication factor 2. VM4 consumes the topic into a local file. Spark Job 1 drops invalid records and exact duplicates, then computes preparation, delivery and fulfilment times, speed, delay and delay category. VM4 publishes that to <code>order_metrics</code>. VM1 consumes it, and Spark Job 2 computes restaurant- and city-level averages and delay rates. Kafka gives reliable, replicated data movement; Spark does the computation. Because every partition has a replica on both brokers, the pipeline keeps running when VM3 fails."</p>
+<h3 id="122-kafka-concepts">12.2 Kafka concepts</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Q</th>
+<th>A</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>What is a topic, partition and offset?</td>
+<td>A topic is a named stream. It's split into partitions, each an append-only, ordered log. An offset is a record's position in its partition. Ordering is guaranteed <strong>only within a partition</strong>.</td>
+</tr>
+<tr>
+<td>Why 2 partitions?</td>
+<td>Parallelism: up to 2 consumers in a group could share the work, and partition leadership spreads load across the 2 brokers. The spec also requires it.</td>
+</tr>
+<tr>
+<td>Replication factor 2?</td>
+<td>Each partition has 2 copies, one per broker: a leader that handles reads/writes, and a follower that copies from the leader.</td>
+</tr>
+<tr>
+<td>What is the ISR?</td>
+<td>The In-Sync Replicas: replicas that have caught up with the leader within <code>replica.lag.time.max.ms</code> (30 s). Only ISR members can become leader without losing data.</td>
+</tr>
+<tr>
+<td>What happened to the ISR when VM3 stopped?</td>
+<td>It shrank from <code>1,2</code> to <code>1</code>. Partitions led by 2 elected 1 as leader. Replicas stayed <code>1,2</code> because that's the assignment, not the live state.</td>
+</tr>
+<tr>
+<td>How does VM3 rejoin?</td>
+<td>On restart it fetches the records it missed from the leader. Once caught up, the leader adds it back to the ISR.</td>
+</tr>
+<tr>
+<td>What does <code>acks=all</code> mean?</td>
+<td>The leader acknowledges only after every ISR member has the record. That's the strongest durability.</td>
+</tr>
+<tr>
+<td>What is <code>min.insync.replicas</code>?</td>
+<td>The minimum ISR size for an <code>acks=all</code> write to succeed. Ours is 1, so writes continue with one broker. 2 would block writes during the failure.</td>
+</tr>
+<tr>
+<td>High watermark?</td>
+<td>The highest offset copied to all ISR members. Consumers only read up to it, so they never see data that could be lost.</td>
+</tr>
+<tr>
+<td>Is Kafka a queue?</td>
+<td>No, it's a log. Reading doesn't delete anything. Data stays until retention (7 days by default), so we can <strong>replay</strong> it.</td>
+</tr>
+<tr>
+<td>Consumer group?</td>
+<td>Consumers sharing a <code>group.id</code> split the partitions between them and commit offsets in <code>__consumer_offsets</code>. We deliberately use <strong>no group</strong>, so every run re-reads the whole topic (batch semantics).</td>
+</tr>
+<tr>
+<td>Delivery semantics?</td>
+<td>Kafka gives at-least-once by default. Our producer is idempotent (kafka-python 3.x), which avoids duplicates from its own retries. Spark's exact-duplicate removal makes any replay harmless, so the result is effectively exactly-once.</td>
+</tr>
+<tr>
+<td>What is KRaft?</td>
+<td>Kafka Raft. Kafka stores its own metadata (topics, partitions, leaders, ISR) in an internal Raft-replicated log, <code>__cluster_metadata</code>, managed by controller nodes. It <strong>replaces ZooKeeper</strong>: one system instead of two, faster failover, more partitions.</td>
+</tr>
+<tr>
+<td>What does the controller do?</td>
+<td>It's the cluster brain: registers brokers, tracks heartbeats, elects partition leaders, updates the ISR in the metadata log, and pushes metadata to brokers.</td>
+</tr>
+<tr>
+<td>Why can't VM2 be stopped?</td>
+<td>It's the <strong>only</strong> voter in the controller quorum. With no controller there are no leader elections or metadata updates, and it's also broker 1, which leads partitions. HA for the controller needs 3 voters (a majority of 3 survives 1 failure).</td>
+</tr>
+<tr>
+<td><code>listeners</code> vs <code>advertised.listeners</code>?</td>
+<td><code>listeners</code> is what the broker binds to. <code>advertised.listeners</code> is the address it tells clients to use, so it must be the ZeroTier IP.</td>
+</tr>
+<tr>
+<td>Bootstrap server?</td>
+<td>Just the first contact point. The client fetches cluster metadata from it (all brokers and partition leaders), then talks to the leaders directly.</td>
+</tr>
+<tr>
+<td>Why <code>node.id</code> 1 and 2?</td>
+<td>Unique broker IDs. They're the numbers in Leader/Replicas/Isr.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="123-spark-concepts">12.3 Spark concepts</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Q</th>
+<th>A</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Why Spark here?</td>
+<td>Distributed, in-memory DataFrame processing. The same code would scale from 62 records to billions across a cluster.</td>
+</tr>
+<tr>
+<td>Driver vs executor? <code>local[*]</code>?</td>
+<td>The driver plans the job and the executors run tasks. <code>local[*]</code> runs both in one JVM, using every CPU core of the VM.</td>
+</tr>
+<tr>
+<td>Lazy evaluation?</td>
+<td>Transformations (<code>filter</code>, <code>withColumn</code>, <code>groupBy</code>) only build a plan (a DAG). Nothing runs until an <strong>action</strong> (<code>count</code>, <code>collect</code>, <code>show</code>). Catalyst then optimises the whole plan.</td>
+</tr>
+<tr>
+<td>Narrow vs wide transformations?</td>
+<td>Narrow transformations (<code>filter</code>, <code>withColumn</code>) work within a partition. Wide ones (<code>groupBy</code>, <code>dropDuplicates</code>, <code>orderBy</code>) <strong>shuffle</strong> data across partitions, which creates a stage boundary.</td>
+</tr>
+<tr>
+<td>How do you handle malformed JSON?</td>
+<td>We read with an explicit schema. A malformed line or wrong-typed value becomes null, and the validity filter drops any record with a null/blank required field, a bad timestamp, <code>distance_km ≤ 0</code>, <code>order_amount ≤ 0</code>, or status ≠ DELIVERED.</td>
+</tr>
+<tr>
+<td>How are minutes computed?</td>
+<td>Parse with <code>to_timestamp(…, 'yyyy-MM-dd HH:mm:ss')</code>, cast to epoch seconds, subtract, and divide by 60.</td>
+</tr>
+<tr>
+<td>Delay category boundaries?</td>
+<td>0 → ON_TIME, ≤15 → SLIGHT, ≤30 → MODERATE, &gt;30 → SEVERE. delivery_status is ON_TIME if delay = 0, otherwise DELAYED.</td>
+</tr>
+<tr>
+<td>How is <code>delay_rate_pct</code> computed?</td>
+<td>100 × delayed_order_count / order_count, rounded to 2 decimal places</td>
+</tr>
+<tr>
+<td>Why not read Kafka from Spark directly?</td>
+<td>The spec forbids it. Landing to a file decouples the stages: each Spark job is a repeatable batch over a fixed snapshot, and Kafka and Spark can fail independently.</td>
+</tr>
+<tr>
+<td>Why batch, not Structured Streaming?</td>
+<td>The spec asks for batch, and the data is a finite set of completed orders. Streaming would add windows, watermarks and checkpoints we don't need.</td>
+</tr>
+<tr>
+<td>Why <code>cache()</code> in Job 1?</td>
+<td>The output DataFrame is used three times (write, count, category table). Caching computes it once.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="124-zerotier">12.4 ZeroTier</h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Q</th>
+<th>A</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>What is it?</td>
+<td>A software-defined virtual network. Every VM gets a private IP on one virtual LAN, even when the laptops are behind different Wi-Fi/NAT. Traffic is peer-to-peer and encrypted.</td>
+</tr>
+<tr>
+<td>Why do we need it?</td>
+<td>Kafka brokers and clients need direct IP connectivity on ports 9092/9093. VMs on different laptops can't reach each other otherwise.</td>
+</tr>
+<tr>
+<td>What if a laptop's Wi-Fi changes?</td>
+<td>The ZeroTier IP stays the same, so the Kafka config keeps working</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="125-what-if-questions-the-ta-likes">12.5 "What if…" questions the TA likes</h3>
+<p>Use the "If you do it differently" tables in §§4–9. Every row there is a viva answer.</p>
+<h3 id="126-where-each-rule-lives-in-the-code-show-the-ta">12.6 Where each rule lives in the code (show the TA)</h3>
+<ul>
+<li>Cleaning rules: <code>spark_job1_enrich.py:52-59</code></li>
+<li>Exact de-dup, Job 1: <code>spark_job1_enrich.py:61</code>. Job 2: <code>spark_job2_analytics.py:29</code></li>
+<li>Time formulas, delay, status, category: <code>spark_job1_enrich.py:63-78</code></li>
+<li>Aggregations: <code>spark_job2_analytics.py:31-41</code></li>
+<li><code>acks=all</code>: <code>producer.py:22</code>. No-group full replay: <code>consumer.py:22-25</code></li>
+</ul>
+<hr />
+<h2 id="13-troubleshooting">13. Troubleshooting</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause → fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NoBrokersAvailable</code> / <code>TimeoutException</code> from clients</td>
+<td><code>BS</code> is wrong or unset in this terminal, the firewall is closed, or Kafka isn't running on VM2 → <code>echo $BS</code>, <code>bash preflight.sh</code></td>
+</tr>
+<tr>
+<td>Client connects but then hangs or times out</td>
+<td><code>advertised.listeners</code> isn't the ZeroTier IP → <code>cat $KAFKA_HOME/config/a2-kraft.properties</code></td>
+</tr>
+<tr>
+<td>VM3 won't start; <code>server.log</code> mentions the cluster id</td>
+<td>A different cluster ID was used on VM3 → re-run <code>kafka_node_setup.sh vm3 …</code> with VM2's ID</td>
+</tr>
+<tr>
+<td><code>Replication factor: 2 larger than available brokers: 1</code></td>
+<td>VM3 is down. Start it, then create the topics.</td>
+</tr>
+<tr>
+<td>Consumer lands 0 records</td>
+<td>The producer hasn't run yet, or the topic was just recreated, or the idle timeout was too short → run the producer, then the consumer again</td>
+</tr>
+<tr>
+<td><code>Path does not exist: hdfs://…</code></td>
+<td>You're running an old copy of the code. These jobs use <code>file://</code>.</td>
+</tr>
+<tr>
+<td><code>ModuleNotFoundError: kafka</code></td>
+<td>The venv isn't active → <code>source ~/a2/venv/bin/activate</code></td>
+</tr>
+<tr>
+<td>Kafka gone after a VM reboot</td>
+<td>It doesn't auto-start → start command at the end of §5</td>
+</tr>
+<tr>
+<td>Spark prints lots of <code>WARN</code> lines</td>
+<td>Normal. The job result lines start with <code>Job 1:</code> / <code>Job 2:</code>.</td>
+</tr>
+<tr>
+<td>Checker shows "mismatched rows"</td>
+<td>Old files were uploaded, or <code>orders.jsonl</code> was modified → check the hash and redo Phase 7</td>
+</tr>
+</tbody>
+</table></div>
+<p>Logs: <code>tail -50 $KAFKA_HOME/logs/server.log</code> on VM2/VM3.</p>
+<hr />
+<h2 id="14-ta-checklist-how-we-meet-it">14. TA checklist → how we meet it</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>TA requirement</th>
+<th>How</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>KAFKA_HOME</code> and <code>BS</code> exported in the Kafka terminal on each VM</td>
+<td>§6 step 3.1, §10 step 7.4</td>
+<td><code>preflight.sh</code> lines 1–3</td>
+</tr>
+<tr>
+<td>All previous output files cleared, <code>orders.jsonl</code> untouched</td>
+<td>§10 step 7.3</td>
+<td><code>preflight.sh</code>: "old output … cleared" plus the sha256 check of the input</td>
+</tr>
+<tr>
+<td>Accuracy from the <strong>live</strong> run only</td>
+<td>Topics recreated, live run during the demo</td>
+<td>Expected numbers in §8</td>
+</tr>
+<tr>
+<td>Topic config and ISR before the failure</td>
+<td>§9 step 6.1</td>
+<td><code>preflight.sh</code> topic lines</td>
+</tr>
+<tr>
+<td>ISR and leadership after stopping a broker</td>
+<td>§9 steps 6.2–6.3 (stop <strong>VM3</strong> only)</td>
+<td><code>Isr: 1</code>, <code>Leader: 1</code>, <code>--unavailable-partitions</code> empty</td>
+</tr>
+<tr>
+<td>Kafka reachable, data flow continues</td>
+<td>§9 step 6.4</td>
+<td>124 → 44 → identical outputs</td>
+</tr>
+<tr>
+<td>Restarted broker rejoins ISR, pipeline continues</td>
+<td>§9 steps 6.5–6.6</td>
+<td><code>Isr: 1,2</code>, under-replicated list empty</td>
+</tr>
+<tr>
+<td>VM2 never stopped</td>
+<td>§9</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Viva, individual</td>
+<td>§12</td>
+<td>Each member explains §1 and answers §12 cold</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="15-assumptions-and-open-points">15. Assumptions and open points</h2>
+<ul>
+<li>The spec's VM table says VM3 is "broker and controller", but its text and the TA both say VM2 is the controller. We follow the text: <strong>VM2 = broker + only controller, VM3 = broker only</strong>.</li>
+<li>The spec writes <code>order amount</code> in Job 1's schema. We output <code>order_amount</code>, which the checker scored at 100 %.</li>
+<li>The download page names the file <code>order.jsonl</code>; the TA calls it <code>orders.jsonl</code>. Same content; we rename it on VM1.</li>
+<li>Kafka 3.9.2, Spark 3.3.4, Java 11 and Python 3.10 (for Spark) per the course "Versioning" page. <code>kafka-python&gt;=3.0</code> runs on the system Python 3.12 venv.</li>
+</ul></main>
+</div>
