@@ -21,6 +21,37 @@ This repository contains all code, scripts, configuration, and step-by-step inst
 
 ---
 
+## ⚡ How Each Teammate Installs Their Folder in 1 Step
+
+### 👤 Aadish (VM 1):
+```bash
+cd ~
+git clone https://github.com/Abhiroop-24/BigData_ZeroTier.git repo
+cp -r repo/vm1_aadish ~/a2
+cd ~/a2
+```
+
+### 👤 Adarsh (VM 3):
+```bash
+cd ~
+git clone https://github.com/Abhiroop-24/BigData_ZeroTier.git repo
+cp -r repo/vm3_adarsh ~/a2
+cd ~/a2
+```
+
+### 👤 Sheiman (VM 4):
+```bash
+cd ~
+git clone https://github.com/Abhiroop-24/BigData_ZeroTier.git repo
+cp -r repo/vm4_sheiman ~/a2
+cd ~/a2
+```
+
+### 👤 Abhiroop (VM 2):
+Already installed and active at `~/a2`.
+
+---
+
 ## 📌 Terminal Setup (EVERYONE runs this in EVERY terminal)
 
 ### 👤 Aadish (VM 1)
