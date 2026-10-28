@@ -22,8 +22,8 @@ chk "broker $B reachable" timeout 5 bash -c "exec 3<>/dev/tcp/${B%:*}/${B##*:}"
 case $ROLE in
   vm2|vm3)
     chk "Kafka process running (jps)" bash -c "jps | grep -qw Kafka"
-    chk "port 9092 listening" bash -c "ss -tln | grep -q ':9092 '"
-    if [ "$ROLE" = vm2 ]; then chk "controller port 9093 listening" bash -c "ss -tln | grep -q ':9093 '"; fi ;;
+    chk "port 9092 listening" bash -c "ss -tln | grep -qE ':9092\b|:9092 '"
+    if [ "$ROLE" = vm2 ]; then chk "controller port 9093 listening" bash -c "ss -tln | grep -qE ':9093\b|:9093 '"; fi ;;
   vm1|vm4)
     chk "python3 imports kafka (venv active?)" python3 -c "import kafka"
     chk "spark-submit on PATH" command -v spark-submit
